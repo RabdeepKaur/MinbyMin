@@ -1,0 +1,75 @@
+Table User{
+  id uuid [primary key , default:`gen_random_uuid()`]
+  username varchar(100) [unique , not null]
+  create_at timestamp [not null , default:`now()`]
+  update_at timestamp [not null  , default:`now()`]
+
+}
+Table Time_block{
+id uuid [ primary key , default:`gen_random_uuid()`]
+user_id  uuid [not null , ref:> User.id]
+name varchar(200) [not null]
+duration_miss integer [not null]
+scheduled_at timestamp [not null]
+started_at timestamp [not null]
+completed_at timestamp
+status block_status [not null , default:'scheduled']
+created_at timestamp [not null, default: `now()`]
+updated_at timestamp [ not null , default:`now()`]
+}
+
+Table Milestone{
+  id uuid [primary key , default:`gen_random_uuid`]
+  name varchar(100) [not null]
+  block_id uuid [not null ,ref:> Time_block.id]
+  position integer [not null]
+  started_at duration [not null]
+  completed_at duration [ not null]
+  status Milestone_Status [not null , default: `pending`]
+  created_at timestamp [not null , default: `now()`]
+  updated_at timestamp [not null , default: `now()`]
+}
+
+Table Alams{
+  id uuid [primary key, default: `gen_random_uuid`]
+  milestone_id uuid [not null , ref:> Milestone.id]
+  ring_at  timestamp [not null , ref:> Milestone.started_at]
+  stop_at timestamp [ not null, ref:> Snooze_photo.id]
+  status alarm_Status [not null , default:`pending`]
+  created_at timestamp [not null , default:`now()`]
+updated_at timestamp [ not null , default: `now()`]
+}
+
+Table Snooze_photo{
+  id uuid [primary key, default: `gen_random_uuid`]
+  alarm_id  uuid [ not null ,ref:> Alams.id]
+  milestone_done uuid [not null , ref:>Milestone.id]
+  photo text [not null]
+  uploded__at timestamp [ not null , default: `now()`]
+  verified boolean [not null , default:false]
+}
+
+Enum block_Status{
+  scheduled [note:' planned but not staterd']
+  active [note: ' currently in progess']
+  completed [note :' all milestone finished']
+  skipped [note :'Dismissed without completing']
+}
+
+Enum Milestone_Stauts{
+  pending [note:' not yet done']
+  active [ note:'currently begin worked']
+  completed [note:'marked done']
+  skipped [note :' Bypassed by user']
+}
+
+Enum  alarm_Stauts{
+  pending [note:" scheduled , not ringin yet"]
+  ringing [note:" currently alerating"]
+  snoozed [ note:" temporaraily dismissed"]
+  dismissed [note:" fully turned off"]
+}
+
+Ref: "Alams"."status" < "Alams"."created_at"
+
+Ref: "Alams"."ring_at" < "Alams"."id"
