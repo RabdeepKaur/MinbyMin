@@ -3,15 +3,17 @@ import {StyleSheet , Text, View,TextInput,Button, TouchableOpacity} from "react-
 import {Link} from "expo-router"
 import { useEffect, useState } from "react"
 import Milestone from "./Milestone.jsx";
+import { Avatar, Card, IconButton } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TimerPickerModal } from "react-native-timer-picker";
+import { ScrollView } from "react-native/types_generated/index";
 
 const Home=()=>{
 const [ blockName, setBlockName] = useState('');
 const [blockcard,setblockcard] = useState([]);  // here we have create an array besue we cna add as many block we want 
-
+// this null state show that beofre the value in filled ont he statemnt no value should be shown here 
 const [duration, setDuration] = useState('');
-
+const[isFormVisible,setFormVisible]=useState(true); // this state is for the milestone form to show and hide it when we click on add milestone button
 const [showPickerstart,setShowPickerstart]=useState(false);// this pick the start time for the librabry
 const [showPickerend,setShowPickerend]=useState(false); // same for end
 const [alaramStringstart,setAlaramStringstart]=useState(null)// this store the alram time in string for start int he library
@@ -36,8 +38,11 @@ const formatTime=({ hours, minutes, seconds }
 
 // here we have to add the set auto matic set duration function
 // 1> first we have to take the value from alramstart and alramend and sub then 
-// 2> should susb of hour  and min be diffrent and what about am and pm? --> we have to convert it into  since this is a 24 hr format 
-//3> then pass the function in the return text duration input form 
+// 2> should susb of hour  and min be diffrent and what about am and pm? --> we have to convert it into  since this is a 24 hr format --> i think this is still creating problem
+//3> then pass the function in the return text duration input form // we are using useeffect so no nned to pass the pvlaue but remeber  the fucntion 
+
+// futher porblem --> what if the user  does setting time black start from one day to anther day , how are we goignt o tackel that ?
+// maybe create a speate block for each day beasue we  are usng 24 hr format ranter than am or pm format 
 
 useEffect(()=>{
   if(alaramStringstart != null && alaramStringend != null){
@@ -76,14 +81,27 @@ const handlesetDuration=(duration)=>{
     setDuration(duration);
 }
 
-const handleAddBLock=(event)=>{
-  const newblock={
-    
-  }
-}
+const handleAddBlock = () => {
+  setblockcard(prev => [...prev, {
+    name: blockName,
+    start: alaramStringstart,
+    end: alaramStringend,
+    duration: duration,
+  }])
+  console.log(alaramStringstart, alaramStringend, duration, blockName)  
+  setFormVisible(false);
+  setBlockName('')
+setAlaramStringstart(null)
+setAlaramStringend(null)
+setDuration('')
+};
+
 
     return (
 <SafeAreaView style={styles.safeArea}>
+  {isFormVisible ? (
+    <>
+    <ScrollView>
 <View style={styles.headerContainer}>
 <Text style={styles.stepTag}>Step 1 of 2 - Build your system</Text>
 <Text style={styles.screenTitle}>Desing <Text style={{color:"black"}}>Your system </Text></Text>
@@ -151,12 +169,59 @@ placeholderTextColor="#A8C4D8"
 keyboardType="numeric"
 />
 
-<Button title="Add Block" onPress={handleAddBLock} color="#4A7A98" style={{padding:10}}/>
+<Button title="Add Block" onPress={handleAddBlock} color="#4A7A98" style={{padding:10}}/>
+
 </View>
-{/*we need to make a block here , for that we are using statemanagement and event handler*/}
-<Milestone/>
+</ScrollView>
+</>
+
+  ):(
+<View>
+  <Button title="Add new block" onPress={() => setFormVisible(true)} />
+</View>
+  )}
+{/*we need to make a block here , for that we are using statemanagement and event handler
+ and this min=lestone will be render after we have create the block  
+ like the milestone is insted the block 
+*/} 
+{blockcard && (
+  blockcard.map((block,index) => (
+
+  <View style={styles.cardblock}>
+    <View style={styles.accentBar} />
+    <View style={styles.cardContent}>
+
+      <View style={styles.cardHeader}>
+        <Text style={styles.cardTitle}>{block.name}</Text>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>Add Milestone</Text>
+        </View>
+      </View>
+
+      <View style={styles.timeRow}>
+        <View style={styles.timeBox}>
+          <Text style={styles.timeLabel}>Start time</Text>
+          <Text style={styles.timeValue}>{block.start}</Text>
+        </View>
+        <View style={styles.timeBox}>
+          <Text style={styles.timeLabel}>End time</Text>
+          <Text style={styles.timeValue}>{block.end}</Text>
+        </View>
+      </View>
+
+      <View style={styles.durationBox}>
+        <Text style={styles.timeLabel}>Duration</Text>
+        <Text style={styles.timeValue}>{block.duration}</Text>
+      </View>
+
+    </View>
+  </View>
+
+  ))
+)}
 
 </SafeAreaView>
+
     )
 }
 export default Home;
@@ -226,4 +291,70 @@ const styles =StyleSheet.create({
     fontSize: 14,
     color: '#1E1E1E',
   },
+  cardblock: {
+  backgroundColor: '#fff',
+  borderRadius: 12,
+  borderWidth: 0.5,
+  borderColor: '#e0e0e0',
+  flexDirection: 'row',
+  overflow: 'hidden',
+  marginTop: 16,
+},
+accentBar: {
+  width: 4,
+  backgroundColor: '#378ADD',
+},
+cardContent: {
+  flex: 1,
+  padding: 16,
+},
+cardHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 14,
+},
+cardTitle: {
+  fontSize: 16,
+  fontWeight: '500',
+},
+badge: {
+  backgroundColor: '#E6F1FB',
+  borderRadius: 99,
+  paddingHorizontal: 10,
+  paddingVertical: 3,
+},
+badgeText: {
+  fontSize: 11,
+  fontWeight: '500',
+  color: '#185FA5',
+},
+timeRow: {
+  flexDirection: 'row',
+  gap: 12,
+  marginBottom: 12,
+},
+timeBox: {
+  flex: 1,
+  backgroundColor: '#f5f5f5',
+  borderRadius: 8,
+  padding: 10,
+},
+durationBox: {
+  backgroundColor: '#f5f5f5',
+  borderRadius: 8,
+  padding: 10,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+},
+timeLabel: {
+  fontSize: 11,
+  color: '#888',
+  marginBottom: 4,
+},
+timeValue: {
+  fontSize: 15,
+  fontWeight: '500',
+},
 })
